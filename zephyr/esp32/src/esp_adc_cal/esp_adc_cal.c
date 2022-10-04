@@ -5,12 +5,11 @@
  */
 
 #include <stdint.h>
-//#include "esp_types.h"
-//#include "driver/adc.h"
-//#include "soc/efuse_periph.h"
-//#include "esp_err.h"
-////#include "esp_check.h"
-//#include "assert.h"
+#include "esp_types.h"
+#include "driver/adc.h"
+#include "soc/efuse_periph.h"
+#include "esp_err.h"
+#include "assert.h"
 #include "esp_adc_cal.h"
 
 /* ----------------------------- Configuration ------------------------------ */
