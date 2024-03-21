@@ -21,6 +21,10 @@
 #include "esp32c3/rom/cache.h"
 #include "soc/extmem_reg.h"
 #include "soc/ext_mem_defs.h"
+#elif CONFIG_SOC_SERIES_ESP32C6
+#include "esp32c6/rom/cache.h"
+#include "soc/extmem_reg.h"
+#include "soc/ext_mem_defs.h"
 #endif
 
 #define DPORT_CACHE_BIT(cpuid, regid) DPORT_ ## cpuid ## regid
@@ -72,7 +76,7 @@ static void IRAM_ATTR spi_flash_disable_cache(uint32_t cpuid, uint32_t *saved_st
 	icache_state = Cache_Suspend_ICache() << 16;
 	dcache_state = Cache_Suspend_DCache();
 	*saved_state = icache_state | dcache_state;
-#elif CONFIG_SOC_SERIES_ESP32C3
+#elif defined(CONFIG_SOC_SERIES_ESP32C3) || defined(CONFIG_SOC_SERIES_ESP32C6)
 	uint32_t icache_state;
 	icache_state = Cache_Suspend_ICache() << 16;
 	*saved_state = icache_state;
@@ -98,7 +102,7 @@ static void IRAM_ATTR spi_flash_restore_cache(uint32_t cpuid, uint32_t saved_sta
 #elif CONFIG_SOC_SERIES_ESP32S3
 	Cache_Resume_DCache(saved_state & 0xffff);
 	Cache_Resume_ICache(saved_state >> 16);
-#elif CONFIG_SOC_SERIES_ESP32C3
+#elif defined(CONFIG_SOC_SERIES_ESP32C3) || defined(CONFIG_SOC_SERIES_ESP32C6)
 	Cache_Resume_ICache(saved_state >> 16);
 #endif /* CONFIG_SOC_SERIES_ESP32xx */
 }
@@ -113,11 +117,11 @@ void IRAM_ATTR spi_flash_disable_interrupts_caches_and_other_cpu(void)
 
 	s_intr_saved_state = irq_lock();
 
-#if !defined(CONFIG_SOC_SERIES_ESP32C3)
+#if !defined(CONFIG_SOC_SERIES_ESP32C3) && !defined(CONFIG_SOC_SERIES_ESP32C6)
 	esp_intr_noniram_disable();
 #endif
 
-#if !defined(CONFIG_SOC_SERIES_ESP32C3)
+#if !defined(CONFIG_SOC_SERIES_ESP32C3) && !defined(CONFIG_SOC_SERIES_ESP32C6)
 	int cpu_id = arch_curr_cpu()->id;
 #else
 	int cpu_id =  PRO_CPU_NUM;
@@ -132,7 +136,7 @@ void IRAM_ATTR spi_flash_disable_interrupts_caches_and_other_cpu(void)
 
 void IRAM_ATTR spi_flash_enable_interrupts_caches_and_other_cpu(void)
 {
-#if !defined(CONFIG_SOC_SERIES_ESP32C3)
+#if !defined(CONFIG_SOC_SERIES_ESP32C3) && !defined(CONFIG_SOC_SERIES_ESP32C6)
 	int cpu_id = arch_curr_cpu()->id;
 #else
 	int cpu_id = PRO_CPU_NUM;
@@ -144,7 +148,7 @@ void IRAM_ATTR spi_flash_enable_interrupts_caches_and_other_cpu(void)
 	spi_flash_restore_cache(other_cpu, s_cache_ops_saved_state[other_cpu]);
 #endif
 
-#if !defined(CONFIG_SOC_SERIES_ESP32C3)
+#if !defined(CONFIG_SOC_SERIES_ESP32C3) && !defined(CONFIG_SOC_SERIES_ESP32C6)
 	esp_intr_noniram_enable();
 #endif
 
@@ -174,19 +178,3 @@ void spi_flash_op_unlock(void)
    k_mutex_unlock(&s_flash_op_mutex);
 }
 
-IRAM_ATTR bool spi_flash_cache_enabled(void)
-{
-#if CONFIG_SOC_SERIES_ESP32
-    bool result = (DPORT_REG_GET_BIT(DPORT_PRO_CACHE_CTRL_REG, DPORT_PRO_CACHE_ENABLE) != 0);
-#if portNUM_PROCESSORS == 2
-    result = result && (DPORT_REG_GET_BIT(DPORT_APP_CACHE_CTRL_REG, DPORT_APP_CACHE_ENABLE) != 0);
-#endif
-#elif CONFIG_SOC_SERIES_ESP32S2
-    bool result = (REG_GET_BIT(EXTMEM_PRO_ICACHE_CTRL_REG, EXTMEM_PRO_ICACHE_ENABLE) != 0);
-#elif CONFIG_SOC_SERIES_ESP32S3 || CONFIG_SOC_SERIES_ESP32C3 || CONFIG_SOC_SERIES_ESP32C2
-    bool result = (REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) != 0);
-#elif CONFIG_SOC_SERIES_ESP32C6 || CONFIG_SOC_SERIES_ESP32H2
-    bool result = s_cache_enabled;
-#endif
-    return result;
-}

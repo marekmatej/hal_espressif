@@ -53,6 +53,27 @@ if(CONFIG_SOC_SERIES_ESP32C6)
 
     ../../components/esp_timer/include
     ../../components/esp_timer/private_include
+  
+    ../../components/driver/include
+    ../../components/driver/deprecated
+    ../../components/driver/gpio/include
+    ../../components/driver/uart/include
+    ../../components/driver/touch_sensor/include
+    ../../components/driver/touch_sensor/${CONFIG_SOC_SERIES}/include
+    ../../components/driver/spi/include
+
+    ../../components/spi_flash/include
+    ../../components/spi_flash/include/spi_flash
+
+    ../../components/esp_pm/include
+
+    ../../components/bootloader_support/include
+    ../../components/bootloader_support/private_include
+    ../../components/bootloader_support/bootloader_flash/include
+
+    ../../components/heap/include
+
+    ../../components/esp_mm/include
   )
 
   zephyr_link_libraries(
@@ -65,7 +86,49 @@ if(CONFIG_SOC_SERIES_ESP32C6)
     -T${CMAKE_CURRENT_SOURCE_DIR}/../../tools/esptool_py/flasher_stub/ld/rom_32c6.ld
   )
 
+    zephyr_sources_ifdef(
+    CONFIG_ESP32_SPIM
+    ../../components/hal/spi_hal.c
+    ../../components/hal/spi_hal_iram.c
+    ../../components/soc/lldesc.c
+    ../../components/soc/${CONFIG_SOC_SERIES}/spi_periph.c
+    ../../components/hal/gdma_hal.c
+    )
+
+    if(CONFIG_SOC_FLASH_ESP32 OR NOT CONFIG_BOOTLOADER_MCUBOOT)
+    zephyr_sources(
+    ../../components/spi_flash/flash_ops.c
+    ../../components/spi_flash/esp_flash_api.c
+    ../../components/spi_flash/flash_mmap.c
+    ../../components/esp_mm/esp_mmu_map.c
+    ../../components/bootloader_support/src/flash_encrypt.c
+    ../../components/esp_hw_support/esp_gpio_reserve.c
+    ../../components/hal/cache_hal.c
+    ../../components/hal/mmu_hal.c
+    ../../components/hal/spi_flash_encrypt_hal_iram.c
+    ../../components/hal/spi_flash_hal.c
+    ../../components/hal/spi_flash_hal_iram.c
+    ../../components/hal/spi_flash_hal_gpspi.c
+    ../../components/spi_flash/esp_flash_api.c
+    ../../components/spi_flash/esp_flash_spi_init.c
+    ../../components/spi_flash/flash_mmap.c
+    ../../components/spi_flash/flash_ops.c
+    ../../components/spi_flash/memspi_host_driver.c
+    ../../components/spi_flash/spi_flash_chip_boya.c
+    ../../components/spi_flash/spi_flash_chip_drivers.c
+    ../../components/spi_flash/spi_flash_chip_gd.c
+    ../../components/spi_flash/spi_flash_chip_generic.c
+    ../../components/spi_flash/spi_flash_chip_issi.c
+    ../../components/spi_flash/spi_flash_chip_mxic.c
+    ../../components/spi_flash/spi_flash_chip_mxic_opi.c
+    ../../components/spi_flash/spi_flash_chip_th.c
+    ../../components/spi_flash/spi_flash_chip_winbond.c
+    ../../components/spi_flash/spi_flash_os_func_noos.c
+    )
+  endif()
+
   zephyr_sources(
+    
     ../../components/soc/${CONFIG_SOC_SERIES}/gpio_periph.c
     ../../components/soc/${CONFIG_SOC_SERIES}/rtc_io_periph.c
 
@@ -111,6 +174,10 @@ if(CONFIG_SOC_SERIES_ESP32C6)
     ../../components/log/log.c
 
     ../esp_shared/src/common/esp_system_api.c
+    
+    ../port/heap/heap_caps_zephyr.c
+    ../port/host_flash/cache_utils.c
+    ../../components/riscv/interrupt.c
 
     src/stubs.c
   )
