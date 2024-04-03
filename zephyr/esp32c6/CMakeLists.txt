@@ -35,6 +35,7 @@ if(CONFIG_SOC_SERIES_ESP32C6)
     ../../components/esp_system/include/esp_private
     ../../components/esp_system/port/include
     ../../components/esp_system/port/include/private/esp_private
+	../../components/esp_system/port/include/private
 
     ../../components/hal/${CONFIG_SOC_SERIES}/include
     ../../components/hal/include
@@ -127,6 +128,20 @@ if(CONFIG_SOC_SERIES_ESP32C6)
     )
   endif()
 
+  if(CONFIG_PM OR CONFIG_POWEROFF)
+  zephyr_sources(
+	../../components/esp_hw_support/sleep_gpio.c
+	../../components/driver/gpio/rtc_io.c
+	../../components/esp_hw_support/sleep_modes.c
+	#../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/rtc_sleep.c
+	../../components/esp_hw_support/sleep_modem.c
+	../../components/hal/rtc_io_hal.c
+	../../components/driver/gpio/gpio.c
+	../../components/esp_hw_support/sleep_cpu.c
+	#../../components/hal/${CONFIG_SOC_SERIES}/rtc_cntl_hal.c
+	)
+  endif()
+
   zephyr_sources(
     
     ../../components/soc/${CONFIG_SOC_SERIES}/gpio_periph.c
@@ -158,6 +173,8 @@ if(CONFIG_SOC_SERIES_ESP32C6)
 
     ../../components/esp_system/port/soc/${CONFIG_SOC_SERIES}/clk.c
     ../../components/esp_system/port/soc/${CONFIG_SOC_SERIES}/system_internal.c
+	../../components/esp_system/port/soc/${CONFIG_SOC_SERIES}/reset_reason.c
+    ../../components/esp_system/esp_err.c
 
     ../../components/esp_timer/src/esp_timer.c
     ../../components/esp_timer/src/esp_timer_impl_systimer.c
