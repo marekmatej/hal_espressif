@@ -277,7 +277,6 @@ if(CONFIG_SOC_SERIES_ESP32C3)
     ../../components/esp_hw_support/sar_periph_ctrl_common.c
     ../../components/esp_hw_support/sleep_modes.c
     ../../components/esp_hw_support/port/esp_clk_tree_common.c
-    ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/cpu_region_protect.c
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/esp_clk_tree.c
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/rtc_init.c
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/rtc_clk.c
