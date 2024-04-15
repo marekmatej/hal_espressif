@@ -98,9 +98,6 @@ if(CONFIG_SOC_SERIES_ESP32C6)
 
     if(CONFIG_SOC_FLASH_ESP32 OR NOT CONFIG_BOOTLOADER_MCUBOOT)
     zephyr_sources(
-    ../../components/spi_flash/flash_ops.c
-    ../../components/spi_flash/esp_flash_api.c
-    ../../components/spi_flash/flash_mmap.c
     ../../components/esp_mm/esp_mmu_map.c
     ../../components/bootloader_support/src/flash_encrypt.c
     ../../components/esp_hw_support/esp_gpio_reserve.c
@@ -142,10 +139,47 @@ if(CONFIG_SOC_SERIES_ESP32C6)
 	)
   endif()
 
+  if (CONFIG_MCUBOOT)
+    zephyr_compile_definitions(BOOTLOADER_BUILD)
+    zephyr_compile_definitions(NDEBUG)
+  endif()
+
+  if (CONFIG_MCUBOOT OR NOT CONFIG_BOOTLOADER_MCUBOOT)
+    zephyr_include_directories(
+      ../../components/esp_rom/${CONFIG_SOC_SERIES}
+      ../port/include/boot
+      )
+
+    zephyr_sources(
+      ../../components/bootloader_support/src/${CONFIG_SOC_SERIES}/bootloader_soc.c
+      ../../components/bootloader_support/src/bootloader_mem.c
+      ../../components/bootloader_support/src/bootloader_clock_init.c
+      ../../components/bootloader_support/src/bootloader_console.c
+      ../../components/bootloader_support/src/bootloader_console_loader.c
+      ../../components/bootloader_support/src/bootloader_random.c
+      ../../components/esp_rom/patches/esp_rom_sys.c
+      ../../components/hal/mpu_hal.c
+      ../../components/bootloader_support/src/${CONFIG_SOC_SERIES}/bootloader_${CONFIG_SOC_SERIES}.c
+      ../../components/bootloader_support/src/bootloader_init.c
+      ../../components/bootloader_support/src/bootloader_random_${CONFIG_SOC_SERIES}.c
+      ../../components/bootloader_support/src/bootloader_common.c
+      ../../components/bootloader_support/src/bootloader_common_loader.c
+	  )
+
+    zephyr_sources_ifdef(
+      CONFIG_MCUBOOT
+      ../port/boot/esp_loader.c
+      )
+  endif()
+
   zephyr_sources(
     
     ../../components/soc/${CONFIG_SOC_SERIES}/gpio_periph.c
     ../../components/soc/${CONFIG_SOC_SERIES}/rtc_io_periph.c
+
+    ../../components/bootloader_support/bootloader_flash/src/flash_qio_mode.c
+    ../../components/bootloader_support/bootloader_flash/src/bootloader_flash.c
+    ../../components/bootloader_support/bootloader_flash/src/bootloader_flash_config_${CONFIG_SOC_SERIES}.c
 
     ../../components/esp_hw_support/cpu.c
     ../../components/esp_hw_support/esp_clk.c
@@ -163,6 +197,7 @@ if(CONFIG_SOC_SERIES_ESP32C6)
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/pmu_init.c
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/pmu_param.c
     ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/ocode_init.c
+    ../../components/esp_hw_support/port/${CONFIG_SOC_SERIES}/cpu_region_protect.c
     ../../components/esp_rom/patches/esp_rom_crc.c
     ../../components/esp_rom/patches/esp_rom_sys.c
     ../../components/esp_rom/patches/esp_rom_uart.c
